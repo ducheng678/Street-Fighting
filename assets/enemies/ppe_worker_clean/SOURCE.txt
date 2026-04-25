@@ -1,0 +1,10 @@
+Source asset: project-generated original sprite sheets
+Role: white PPE sampling worker enemy ("Dabai" style)
+
+Project use:
+- 192x192 frame strips for idle, walk, punch, hurt, and knockout.
+- Designed for the existing Canvas beat-em-up enemy renderer.
+- Visual traits: full white protective suit, transparent face shield, mask, blue seam tape, gloves, shoe covers, and sampling-swab attack frames.
+
+External asset status:
+- No third-party PPE image or raw PNG-site material is embedded in these files.

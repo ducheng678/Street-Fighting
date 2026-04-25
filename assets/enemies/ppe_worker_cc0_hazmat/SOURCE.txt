@@ -1,0 +1,14 @@
+Source asset: Sci-Fi Facility Asset Pack
+Author: MurphysDad
+License: Creative Commons Zero v1.0 Universal (CC0)
+Pages:
+- https://murphysdad.itch.io/sci-fi-facility
+- https://opengameart.org/content/sci-fi-facility-asset-pack
+
+Project use:
+- Uses guard_white_spritesheet.png from the source pack as a CC0 hazmat/PPE candidate.
+- Converted from 16x16 top-down pixel frames into 192x192 frame strips for the current Canvas renderer.
+
+Limitations:
+- This is top-down 16x16 pixel art, not a side-view beat-em-up character.
+- It is kept as a candidate source asset and is not wired as the default enemy because it clashes with the current high-resolution side-view player.

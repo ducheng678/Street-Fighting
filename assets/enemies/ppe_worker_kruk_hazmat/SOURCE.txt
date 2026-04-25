@@ -1,0 +1,14 @@
+Source asset: Hazmat guy 2d animations
+Author: Kruk2024
+Page: https://kruk2024.itch.io/hazmat-guy-2d-animations
+
+Project use:
+- Uses the E-facing idle and walk GIF animations as the base hazmat suit enemy.
+- Source GIF frames are 128x128 with 8-direction isometric movement.
+- Converted into 192x192 Canvas sprite strips for idle, walk, punch, hurt, and knockout.
+- Suit color was manually remapped from yellow/olive hazmat to white PPE-style protection.
+- Punch, hurt, and knockout strips are derived from the original idle/walk frames because the source pack only includes idle and walk.
+
+License note:
+- The itch page is name-your-own-price/free to download, but it does not explicitly state CC0 or an open-source license.
+- Treat this as prototype-use only unless the author confirms broader redistribution/commercial rights.

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>除匪务尽原型</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="title-wrap">
+          <p class="eyebrow">Arcade Beat 'em Up Prototype</p>
+          <h1>除匪务尽</h1>
+          <p class="lede">
+            一个参考早期横版清关格斗手感的网页原型。重点是移动、连击、横向推进和爆气节奏，
+            先验证“玩起来像不像”。
+          </p>
+        </div>
+        <div class="card">
+          <canvas id="game" width="960" height="540" aria-label="除匪务尽游戏画布"></canvas>
+          <div class="status-bar">
+            <span>方向键移动 / <strong>Shift</strong> 冲刺 / 连按左右冲刺</span>
+            <span><strong>A</strong> 轻击</span>
+            <span><strong>S</strong> 重击</span>
+            <span><strong>A+S</strong> 升龙</span>
+            <span><strong>Q</strong> 扫腿</span>
+            <span><strong>下+S</strong> 波动冲拳</span>
+            <span><strong>冲刺+A</strong> 冲膝</span>
+            <span><strong>F</strong> 抓取 / 拾物 / 投掷</span>
+            <span><strong>D</strong> 爆气</span>
+            <span><strong>R</strong> 重开</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <article>
+          <h2>原型范围</h2>
+          <p>横向滚屏、四段街区、锁区清场、场景物件、抓投和带二阶段的关底 Boss。</p>
+        </article>
+        <article>
+          <h2>这版没做</h2>
+          <p>空连深度、倒地追打、自制角色逐帧、音效系统和更复杂的取消系统。</p>
+        </article>
+        <article>
+          <h2>下一步适合加</h2>
+          <p>抓投分支、Boss 终结技、场景破坏、完整一关地图与素材替换。</p>
+        </article>
+      </section>
+    </main>
+
+    <script src="./game.js"></script>
+  </body>
+</html>

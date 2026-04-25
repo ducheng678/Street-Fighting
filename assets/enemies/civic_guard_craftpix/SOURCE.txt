@@ -1,0 +1,10 @@
+Source asset: Free 2D Police Character Sprites
+Author / publisher: Free Game Assets (GUI, Sprite, Tilesets) / CraftPix
+Pages:
+- https://free-game-assets.itch.io/free-2d-police-character-sprites
+- https://craftpix.net/freebies/2d-game-police-character-free-sprite-sheets/
+
+Project use:
+- Variant 3 PNG frames were cropped into idle, walk, punch, hurt, and knockout sprite strips.
+- Sprites were lightly contrast/saturation adjusted for this prototype.
+- Do not redistribute the raw source archive as a standalone asset pack.
