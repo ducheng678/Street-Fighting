@@ -4,7 +4,7 @@
 
 ## 运行
 
-直接打开 [index.html](/mnt/c/Users/chengdu/Desktop/smash commie pig/index.html) 即可。
+直接打开 [index.html]即可。
 
 ## 操作
 
@@ -48,4 +48,4 @@
 - 玩家贴图改为 itch.io 上的 `2D Fighter character`，作者 `Kalponic Studio`，页面说明允许用于商用和非商用游戏
 - 普通杂兵贴图来自 CraftPix / Free Game Assets 的 `Free 2D Police Character Sprites`，已裁切成游戏所需帧并做轻量调色；精英怪和 Boss 临时使用 Kruk2024 的 `Hazmat guy 2d animations` 改色素材，页面为免费可下载但未明确标注 CC0/开源授权，正式发布前需要确认授权
 - 爆气特效贴图来自 `OpenGameArt` 上的 `FX charge` 与 `Ring Explosion`，授权为 `CC0`
-- 资源文件位于 [assets/player_kalponic_structured](/mnt/c/Users/chengdu/Desktop/smash%20commie%20pig/assets/player_kalponic_structured)、[assets/enemies](/mnt/c/Users/chengdu/Desktop/smash%20commie%20pig/assets/enemies) 和 [assets/vfx](/mnt/c/Users/chengdu/Desktop/smash%20commie%20pig/assets/vfx)
+- 资源文件位于 [assets/player_kalponic_structured]、[assets/enemies]和 [assets/vfx]
