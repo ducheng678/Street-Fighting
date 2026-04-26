@@ -678,7 +678,7 @@ const zoneTemplates = [
   },
   {
     id: 3,
-    name: "修车厂门口",
+    name: "独裁者据点",
     triggerX: 2180,
     left: 2120,
     right: 2540,
@@ -835,7 +835,7 @@ class Enemy extends Fighter {
       this.size = 1.48;
       this.bodyColor = "#ee4f39";
       this.accentColor = "#ffce57";
-      this.name = "威权委员长";
+      this.name = "独裁者暴君XI";
     } else if (kind === "brute") {
       this.maxHp = 96;
       this.hp = this.maxHp;

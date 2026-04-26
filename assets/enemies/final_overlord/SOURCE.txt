@@ -1,10 +1,10 @@
-Source asset: project-generated original sprite sheets
-Role: fictional authoritarian final boss
+Source asset: user-provided transparent PNG sprite sheets
+Role: fictional dictator final boss
 
 Project use:
 - 192x192 frame strips for idle, walk, punch, hurt, and knockout.
-- Designed as a non-identifiable fictional boss for the Canvas beat-em-up renderer.
-- Visual traits: black stand-collar jacket, red sash, gold medallion, dark glasses, command-seal attack frames, and exaggerated bureaucratic villain posture.
+- Prepared as a user-provided/generated satire boss sprite set for the Canvas beat-em-up renderer.
+- Visual traits: pink virus-shaped head, green military commander uniform, medals, gold epaulettes, red cape, white gloves, and exaggerated cartoon tyrant posture.
 
-Safety note:
-- This character is not named after, modeled on, or intended to reproduce the likeness of any real living person.
+Release note:
+- These user-provided/generated satire sprite sheets should have their usage rights confirmed before public release.

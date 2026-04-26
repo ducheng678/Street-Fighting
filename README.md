@@ -30,7 +30,7 @@ Simply open [index.html].
 - Hit pauses, hit compression, and clearer action phases for moves
 - Player and enemy sprites have switched to sprite sheet rendering, moving away from purely programmed characters
 - Regular enemies have been redesigned using clearer free blue uniform character assets, while elite enemies use Hazmat animation assets that resemble biohazard suits
-- The final boss now has a dedicated fictional authoritarian design with a black stand-collar outfit, red-and-gold power symbols, and command-seal attack frames
+- The final boss now uses user-provided/generated transparent sprite sheets with a pink virus-shaped head, green commander uniform, medals, epaulettes, cape, and corrected full-body attack frames
 - Enemy grabbing, scene object interaction, and throwing damage
 - Two types of regular enemies and a final boss with two phases
 - Ground warnings and clearer boss attack range indicators
@@ -49,6 +49,6 @@ Simply open [index.html].
 - Player sprites have been changed to `2D Fighter character` from itch.io, created by `Kalponic Studio`, with page notes allowing use in commercial and non-commercial games
 - Regular enemy sprites are sourced from CraftPix / Free Game Assets' `Free 2D Police Character Sprites`, trimmed to the required frames and lightly color-adjusted
 - Elite enemies temporarily use Kruk2024's `Hazmat guy 2D animations` with color adjustments; it is available for free download but does not explicitly state CC0/open-source licensing, so release rights need confirmation before official release
-- The final boss is a project-generated fictional character and is not named after, modeled on, or intended to reproduce the likeness of any real living person
+- Final boss sprite sheets are user-provided/generated satire assets; confirm usage rights before public release
 - Burst effect sprites are sourced from `OpenGameArt`'s `FX charge` and `Ring Explosion`, licensed under `CC0`
 - Resource files are located in [assets/player_kalponic_structured], [assets/enemies], and [assets/vfx]
