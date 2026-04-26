@@ -1,0 +1,10 @@
+Source asset: project-generated original sprite sheets
+Role: fictional authoritarian final boss
+
+Project use:
+- 192x192 frame strips for idle, walk, punch, hurt, and knockout.
+- Designed as a non-identifiable fictional boss for the Canvas beat-em-up renderer.
+- Visual traits: black stand-collar jacket, red sash, gold medallion, dark glasses, command-seal attack frames, and exaggerated bureaucratic villain posture.
+
+Safety note:
+- This character is not named after, modeled on, or intended to reproduce the likeness of any real living person.

@@ -368,10 +368,68 @@ const ppeWorkerEnemySet = {
   }),
 };
 
+const finalBossEnemySet = {
+  idle: createSpriteStrip({
+    src: "./assets/enemies/final_overlord/idle.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 8,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.92,
+    frameDuration: 128,
+    smoothing: true,
+  }),
+  walk: createSpriteStrip({
+    src: "./assets/enemies/final_overlord/walk.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 8,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.92,
+    frameDuration: 112,
+    smoothing: true,
+  }),
+  hit: createSpriteStrip({
+    src: "./assets/enemies/final_overlord/hurt.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 7,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.92,
+    frameDuration: 110,
+    smoothing: true,
+  }),
+  jab: createSpriteStrip({
+    src: "./assets/enemies/final_overlord/punch.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 10,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.92,
+    frameDuration: 78,
+    smoothing: true,
+  }),
+  death: createSpriteStrip({
+    src: "./assets/enemies/final_overlord/knockout.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 5,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.92,
+    frameDuration: 150,
+    smoothing: true,
+  }),
+};
+
 const enemySpriteSets = {
   thug: civicGuardEnemySet,
   brute: ppeWorkerEnemySet,
-  boss: ppeWorkerEnemySet,
+  boss: finalBossEnemySet,
 };
 
 const vfxSheets = {
@@ -777,7 +835,7 @@ class Enemy extends Fighter {
       this.size = 1.48;
       this.bodyColor = "#ee4f39";
       this.accentColor = "#ffce57";
-      this.name = "白衣队长";
+      this.name = "威权委员长";
     } else if (kind === "brute") {
       this.maxHp = 96;
       this.hp = this.maxHp;

@@ -1,10 +1,13 @@
 # Anti-Insurgency Prototype
+
 A zero-dependency `HTML5 Canvas` horizontal fighting game prototype, aimed at quickly validating the rhythm and feel similar to early Flash action games.
 
 ## Running the Game
+
 Simply open [index.html].
 
 ## Controls
+
 - `Arrow Keys`: Move
 - `Double Tap Left / Right`: Dash
 - `Shift + Left / Right`: Steady Dash
@@ -19,13 +22,15 @@ Simply open [index.html].
 - `R`: Restart
 
 ## Current Features
+
 - Horizontal scrolling levels
 - Four-stage area clearing
 - Light and heavy attacks with basic combos
 - Hit reactions, knockbacks, combo counts, scores, and burst meter
 - Hit pauses, hit compression, and clearer action phases for moves
 - Player and enemy sprites have switched to sprite sheet rendering, moving away from purely programmed characters
-- Regular enemies have been redesigned using clearer free blue uniform character assets, while elite enemies and bosses now utilize Hazmat animation assets that resemble biohazard suits
+- Regular enemies have been redesigned using clearer free blue uniform character assets, while elite enemies use Hazmat animation assets that resemble biohazard suits
+- The final boss now has a dedicated fictional authoritarian design with a black stand-collar outfit, red-and-gold power symbols, and command-seal attack frames
 - Enemy grabbing, scene object interaction, and throwing damage
 - Two types of regular enemies and a final boss with two phases
 - Ground warnings and clearer boss attack range indicators
@@ -33,13 +38,17 @@ Simply open [index.html].
 - Added three new attack branches: `Leg Sweep / Wave Punch / Knee Strike`, which are more in line with fighting game rhythms
 
 ## Next Steps
+
 - Develop more detailed grab and throw mechanics and aerial follow-ups
 - Add a second phase to the boss and clearer move hitboxes
 - Incorporate hand-drawn frame-by-frame animations and sound effects
 - Break down into a more formal project structure and integrate resource pipelines
 
 ## Asset Information
+
 - Player sprites have been changed to `2D Fighter character` from itch.io, created by `Kalponic Studio`, with page notes allowing use in commercial and non-commercial games
-- Regular enemy sprites are sourced from CraftPix / Free Game Assets' `Free 2D Police Character Sprites`, trimmed to the required frames and lightly color-adjusted; elite enemies and bosses are temporarily using Kruk2024's `Hazmat guy 2D animations` with color adjustments, which are available for free download but do not explicitly state CC0/open-source licensing, requiring confirmation before official release
+- Regular enemy sprites are sourced from CraftPix / Free Game Assets' `Free 2D Police Character Sprites`, trimmed to the required frames and lightly color-adjusted
+- Elite enemies temporarily use Kruk2024's `Hazmat guy 2D animations` with color adjustments; it is available for free download but does not explicitly state CC0/open-source licensing, so release rights need confirmation before official release
+- The final boss is a project-generated fictional character and is not named after, modeled on, or intended to reproduce the likeness of any real living person
 - Burst effect sprites are sourced from `OpenGameArt`'s `FX charge` and `Ring Explosion`, licensed under `CC0`
 - Resource files are located in [assets/player_kalponic_structured], [assets/enemies], and [assets/vfx]
