@@ -1,0 +1,4 @@
+Source: user-provided/generated sprite bundle
+Original file: tank_sheets_standard_v2_bundle.zip
+Imported: 2026-05-03
+Notes: Five transparent PNG sprite sheets for tank idle, move, fire, hurt, and destroyed states.
