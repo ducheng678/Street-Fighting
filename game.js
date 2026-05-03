@@ -11,12 +11,76 @@ const SPECIAL_RAYS_DURATION = 650;
 const DASH_TAP_WINDOW = 330;
 const DASH_DURATION = 340;
 const DASH_HOLD_REFRESH = 190;
+const ATTACK_BUFFER_MS = 220;
+
+const spriteObjectUrls = [];
+let spriteSanitizePending = 0;
+let spriteSanitizeFailed = 0;
+let spriteSanitizeReset = false;
+
+function resetCanvasExportState() {
+  canvas.width = WIDTH;
+  canvas.height = HEIGHT;
+  ctx.imageSmoothingEnabled = false;
+}
+
+function finishSpriteSanitize() {
+  if (spriteSanitizePending > 0 || spriteSanitizeReset || spriteObjectUrls.length === 0) {
+    return;
+  }
+
+  spriteSanitizeReset = true;
+  resetCanvasExportState();
+}
 
 function loadSpriteImage(src) {
   const image = new Image();
+  if (window.EMBEDDED_ASSETS && window.EMBEDDED_ASSETS[src]) {
+    image.src = window.EMBEDDED_ASSETS[src];
+    return image;
+  }
+
   image.src = src;
+  if (window.fetch && window.URL && URL.createObjectURL) {
+    spriteSanitizePending += 1;
+    fetch(src, { cache: "force-cache" })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Unable to load ${src}`);
+        }
+        return response.blob();
+      })
+      .then((blob) => {
+        const objectUrl = URL.createObjectURL(blob);
+        const cleanImage = new Image();
+        cleanImage.onload = () => {
+          spriteObjectUrls.push(objectUrl);
+          image.src = objectUrl;
+          spriteSanitizePending -= 1;
+          finishSpriteSanitize();
+        };
+        cleanImage.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          spriteSanitizeFailed += 1;
+          spriteSanitizePending -= 1;
+          finishSpriteSanitize();
+        };
+        cleanImage.src = objectUrl;
+      })
+      .catch(() => {
+        spriteSanitizeFailed += 1;
+        spriteSanitizePending -= 1;
+        finishSpriteSanitize();
+      });
+  }
   return image;
 }
+
+window.addEventListener("beforeunload", () => {
+  for (const objectUrl of spriteObjectUrls) {
+    URL.revokeObjectURL(objectUrl);
+  }
+});
 
 function createSpriteSheet(config) {
   return {
@@ -121,15 +185,15 @@ const playerSpriteBase = {
     smoothing: true,
   }),
   uppercut: createSpriteStrip({
-    src: "./assets/player_kalponic_structured/FighterHD/HeavySmash.png",
+    src: "./assets/player_kalponic_structured/FighterHD/JumpEnd.png",
     frameW: 256,
     frameH: 256,
-    frames: 15,
-    frameDuration: 92,
+    frames: 8,
+    frameDuration: 74,
     anchorX: 128,
     anchorY: 228,
     scale: 0.96,
-    columns: 4,
+    columns: 3,
     smoothing: true,
   }),
   jump: createSpriteStrip({
@@ -150,6 +214,30 @@ const playerSpriteBase = {
     frameH: 256,
     frames: 16,
     frameDuration: 82,
+    anchorX: 128,
+    anchorY: 228,
+    scale: 0.96,
+    columns: 4,
+    smoothing: true,
+  }),
+  sweep: createSpriteStrip({
+    src: "./assets/player_kalponic_structured/FighterHD/LowKick.png",
+    frameW: 256,
+    frameH: 256,
+    frames: 16,
+    frameDuration: 82,
+    anchorX: 128,
+    anchorY: 228,
+    scale: 0.96,
+    columns: 4,
+    smoothing: true,
+  }),
+  dashHeavy: createSpriteStrip({
+    src: "./assets/player_kalponic_structured/FighterHD/ForwardSmash.png",
+    frameW: 256,
+    frameH: 256,
+    frames: 15,
+    frameDuration: 86,
     anchorX: 128,
     anchorY: 228,
     scale: 0.96,
@@ -250,6 +338,8 @@ const playerSpriteSet = {
   uppercutBoost: playerSpriteBase.uppercut,
   jumpBoost: playerSpriteBase.jump,
   jumpAttackBoost: playerSpriteBase.jumpAttack,
+  sweepBoost: playerSpriteBase.sweep,
+  dashHeavyBoost: playerSpriteBase.dashHeavy,
 };
 
 const civicGuardEnemySet = {
@@ -306,6 +396,64 @@ const civicGuardEnemySet = {
     anchorY: 178,
     scale: 0.76,
     frameDuration: 160,
+    smoothing: true,
+  }),
+};
+
+const redGuardEnemySet = {
+  idle: createSpriteStrip({
+    src: "./assets/enemies/red_guard/idle.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 8,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.82,
+    frameDuration: 128,
+    smoothing: true,
+  }),
+  walk: createSpriteStrip({
+    src: "./assets/enemies/red_guard/walk.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 8,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.82,
+    frameDuration: 108,
+    smoothing: true,
+  }),
+  hit: createSpriteStrip({
+    src: "./assets/enemies/red_guard/hurt.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 7,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.82,
+    frameDuration: 112,
+    smoothing: true,
+  }),
+  jab: createSpriteStrip({
+    src: "./assets/enemies/red_guard/punch.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 10,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.82,
+    frameDuration: 76,
+    smoothing: true,
+  }),
+  death: createSpriteStrip({
+    src: "./assets/enemies/red_guard/knockout.png",
+    frameW: 192,
+    frameH: 192,
+    frames: 5,
+    anchorX: 96,
+    anchorY: 178,
+    scale: 0.82,
+    frameDuration: 155,
     smoothing: true,
   }),
 };
@@ -428,6 +576,7 @@ const finalBossEnemySet = {
 
 const enemySpriteSets = {
   thug: civicGuardEnemySet,
+  red_guard: redGuardEnemySet,
   brute: ppeWorkerEnemySet,
   boss: finalBossEnemySet,
 };
@@ -457,7 +606,7 @@ const vfxSheets = {
 };
 
 const world = {
-  width: 2680,
+  width: 3260,
   top: 205,
   bottom: 425,
 };
@@ -535,18 +684,18 @@ const attacks = {
     chain: null,
   },
   uppercut: {
-    name: "升龙",
-    duration: 420,
-    hitStart: 105,
-    hitEnd: 210,
+    name: "升龙霸",
+    duration: 460,
+    hitStart: 76,
+    hitEnd: 206,
     hitStop: 46,
     damage: 30,
     meter: 15,
-    reach: 68,
-    depth: 32,
-    push: 190,
-    launch: -210,
-    move: 16,
+    reach: 74,
+    depth: 40,
+    push: 120,
+    launch: -280,
+    move: 8,
     hitstun: 480,
     shake: 13,
     chain: null,
@@ -605,23 +754,6 @@ const attacks = {
     shake: 12,
     chain: null,
   },
-  dashKnee: {
-    name: "冲膝",
-    duration: 295,
-    hitStart: 56,
-    hitEnd: 146,
-    hitStop: 38,
-    damage: 22,
-    meter: 10,
-    reach: 84,
-    depth: 32,
-    push: 250,
-    launch: -115,
-    move: 48,
-    hitstun: 340,
-    shake: 10,
-    chain: null,
-  },
 };
 
 const zoneTemplates = [
@@ -678,14 +810,31 @@ const zoneTemplates = [
   },
   {
     id: 3,
-    name: "独裁者据点",
+    name: "红袖章路障",
     triggerX: 2180,
     left: 2120,
     right: 2540,
-    enemies: [{ kind: "boss", x: 2380, y: 322 }],
+    enemies: [
+      { kind: "red_guard", x: 2265, y: 238 },
+      { kind: "red_guard", x: 2400, y: 302 },
+      { kind: "red_guard", x: 2315, y: 382 },
+      { kind: "brute", x: 2480, y: 350 },
+    ],
     props: [
-      { type: "barrel", x: 2230, y: 385 },
-      { type: "can", x: 2475, y: 250 },
+      { type: "crate", x: 2225, y: 390 },
+      { type: "barrel", x: 2510, y: 270 },
+    ],
+  },
+  {
+    id: 4,
+    name: "独裁者据点",
+    triggerX: 2740,
+    left: 2680,
+    right: 3120,
+    enemies: [{ kind: "boss", x: 2940, y: 322 }],
+    props: [
+      { type: "barrel", x: 2790, y: 385 },
+      { type: "can", x: 3035, y: 250 },
     ],
     boss: true,
   },
@@ -759,6 +908,16 @@ function hitFlashColor(alpha) {
   return `rgba(255, 244, 179, ${alpha})`;
 }
 
+function getHealthColor(ratio) {
+  if (ratio <= 0.25) {
+    return "#ff5f57";
+  }
+  if (ratio <= 0.55) {
+    return "#ffd166";
+  }
+  return "#7df79f";
+}
+
 class Fighter {
   constructor(x, y) {
     this.x = x;
@@ -803,6 +962,8 @@ class Player extends Fighter {
     this.specialTimer = 0;
     this.specialVictims = new Set();
     this.carrying = null;
+    this.bufferedAttack = null;
+    this.bufferedAttackTimer = 0;
   }
 }
 
@@ -845,6 +1006,15 @@ class Enemy extends Fighter {
       this.bodyColor = "#7e4eff";
       this.accentColor = "#ffd470";
       this.name = "白衣防护员";
+    } else if (kind === "red_guard") {
+      this.maxHp = 72;
+      this.hp = this.maxHp;
+      this.speed = 136;
+      this.damage = 12;
+      this.size = 1.08;
+      this.bodyColor = "#536a31";
+      this.accentColor = "#d42724";
+      this.name = "红卫兵打手";
     } else {
       this.maxHp = 58;
       this.hp = this.maxHp;
@@ -959,6 +1129,68 @@ function queueMessage(text, ms = 1400) {
   game.messageTimer = ms;
 }
 
+function screenshotFilename() {
+  const stamp = new Date()
+    .toISOString()
+    .replace(/[:.]/g, "-");
+  return `chufeiwu-jin-${stamp}.png`;
+}
+
+function downloadCanvasBlob(blob) {
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = screenshotFilename();
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function screenshotFailureMessage() {
+  if (window.location.protocol === "file:") {
+    return "截图失败：请用 start-game.bat 启动游戏";
+  }
+  if (spriteSanitizePending > 0) {
+    return "截图准备中：图片还在安全加载";
+  }
+  if (spriteSanitizeFailed > 0) {
+    return "截图失败：部分图片缺少同源权限";
+  }
+  return "截图失败：画布资源被浏览器拦截";
+}
+
+function captureCanvasScreenshot() {
+  if (spriteSanitizePending > 0) {
+    queueMessage("截图准备中：图片还在安全加载", 1400);
+    return;
+  }
+
+  try {
+    if (canvas.toBlob) {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          queueMessage(screenshotFailureMessage(), 1600);
+          return;
+        }
+        downloadCanvasBlob(blob);
+        queueMessage("已保存主画面截图", 1200);
+      }, "image/png");
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = screenshotFilename();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    queueMessage("已保存主画面截图", 1200);
+  } catch (error) {
+    queueMessage(screenshotFailureMessage(), 1800);
+  }
+}
+
 function spawnBurst(x, y, color, amount = 10) {
   for (let i = 0; i < amount; i += 1) {
     game.particles.push({
@@ -1053,8 +1285,116 @@ function isDown(name) {
   return keys.has(name);
 }
 
+function isPlayerDown(player) {
+  return player.hp <= 0 || game.state === "lost";
+}
+
 function canAct(player) {
-  return player.hitstun === 0 && player.specialTimer === 0;
+  return !isPlayerDown(player) && player.hitstun === 0 && player.specialTimer === 0;
+}
+
+function isGrounded(player) {
+  return player.z === 0;
+}
+
+function canStartGroundAction(player) {
+  return canAct(player) && isGrounded(player);
+}
+
+function clearBufferedAttack(player) {
+  player.bufferedAttack = null;
+  player.bufferedAttackTimer = 0;
+}
+
+function cancelPlayerOffense(player) {
+  player.currentAttack = null;
+  player.attackTimer = 0;
+  player.attackVictims.clear();
+  player.specialTimer = 0;
+  player.specialVictims.clear();
+  clearBufferedAttack(player);
+}
+
+function resolveAttackName(player, type) {
+  if (type === "light") {
+    return "light1";
+  }
+  if (type === "heavy") {
+    return player.dashTimer > 0 ? "dashHeavy" : "heavy";
+  }
+  return type;
+}
+
+function queueBufferedAttack(player, type) {
+  if (!type || !canStartGroundAction(player) || player.carrying) {
+    return;
+  }
+
+  const nextAttack = resolveAttackName(player, type);
+  const currentAttack = attacks[player.currentAttack];
+  if (
+    player.attackTimer > 0 &&
+    nextAttack === player.currentAttack &&
+    currentAttack &&
+    !currentAttack.chain
+  ) {
+    const elapsed = currentAttack.duration - player.attackTimer;
+    if (elapsed < currentAttack.hitEnd) {
+      return;
+    }
+  }
+
+  player.bufferedAttack = type === "heavy" && player.dashTimer > 0 ? "dashHeavy" : type;
+  player.bufferedAttackTimer = ATTACK_BUFFER_MS;
+}
+
+function updateBufferedAttack(player, dt) {
+  if (player.bufferedAttackTimer <= 0) {
+    clearBufferedAttack(player);
+    return;
+  }
+
+  player.bufferedAttackTimer = Math.max(0, player.bufferedAttackTimer - dt);
+  if (player.bufferedAttackTimer === 0) {
+    clearBufferedAttack(player);
+  }
+}
+
+function tryConsumeBufferedAttack(player) {
+  if (!player.bufferedAttack || player.bufferedAttackTimer <= 0) {
+    return false;
+  }
+
+  if (tryStartAttack(player, player.bufferedAttack)) {
+    clearBufferedAttack(player);
+    return true;
+  }
+
+  return false;
+}
+
+function getPressedAttackType(player) {
+  const uppercutPressed =
+    (attackPressed("a") && isDown("s")) || (attackPressed("s") && isDown("a"));
+  const downHeld = isDown("ArrowDown");
+
+  if (attackPressed("q")) {
+    return "sweep";
+  }
+  if (uppercutPressed) {
+    return "uppercut";
+  }
+  if (attackPressed("s") && downHeld) {
+    return "wavePunch";
+  }
+  if (attackPressed("a")) {
+    return "light";
+  }
+  if (attackPressed("s")) {
+    return "heavy";
+  }
+
+  return null;
 }
 
 function nearestGrabbableEnemy(player) {
@@ -1149,6 +1489,10 @@ function countCombo(damage, meterGain = 0) {
 }
 
 function hurtEnemy(enemy, options) {
+  if (isPlayerDown(game.player)) {
+    return;
+  }
+
   if (enemy.removed || enemy.grabbed || enemy.hp <= 0 || enemy.invuln > 0) {
     return;
   }
@@ -1287,6 +1631,7 @@ function hurtPlayer(enemy, damage, push, launch) {
   }
 
   player.hp -= damage;
+  cancelPlayerOffense(player);
   player.hitstun = 280;
   player.invuln = 620;
   player.vx = push;
@@ -1312,10 +1657,14 @@ function startAttack(player, attackName) {
   player.currentAttack = attackName;
   player.attackTimer = attacks[attackName].duration;
   player.attackVictims.clear();
+  if (attackName === "uppercut") {
+    player.z = Math.min(player.z, -6);
+    player.vz = Math.min(player.vz, -420);
+  }
 }
 
 function tryStartAttack(player, type) {
-  if (!canAct(player) || player.carrying) {
+  if (!canStartGroundAction(player) || player.carrying) {
     return false;
   }
 
@@ -1331,7 +1680,7 @@ function tryStartAttack(player, type) {
       return true;
     }
 
-    if (type === "heavy" && player.dashTimer > 0) {
+    if ((type === "heavy" && player.dashTimer > 0) || type === "dashHeavy") {
       startAttack(player, "dashHeavy");
       return true;
     }
@@ -1340,6 +1689,9 @@ function tryStartAttack(player, type) {
   }
 
   if (type === "uppercut") {
+    if (!isGrounded(player)) {
+      return false;
+    }
     startAttack(player, "uppercut");
     return true;
   }
@@ -1354,8 +1706,8 @@ function tryStartAttack(player, type) {
     return true;
   }
 
-  if (type === "dashKnee") {
-    startAttack(player, "dashKnee");
+  if (type === "dashHeavy") {
+    startAttack(player, "dashHeavy");
     return true;
   }
 
@@ -1373,7 +1725,7 @@ function tryStartAttack(player, type) {
 }
 
 function tryInteract(player) {
-  if (!canAct(player) || player.attackTimer > 0) {
+  if (!canStartGroundAction(player) || player.attackTimer > 0) {
     return false;
   }
 
@@ -1398,7 +1750,7 @@ function tryInteract(player) {
 }
 
 function pummelCarry(player) {
-  if (!player.carrying || player.carrying.kind !== "enemy") {
+  if (!canStartGroundAction(player) || !player.carrying || player.carrying.kind !== "enemy") {
     return;
   }
   const enemy = player.carrying.entity;
@@ -1425,7 +1777,7 @@ function pummelCarry(player) {
 }
 
 function throwCarry(player, forceMultiplier = 1) {
-  if (!player.carrying) {
+  if (!canStartGroundAction(player) || !player.carrying) {
     return;
   }
 
@@ -1470,7 +1822,7 @@ function throwCarry(player, forceMultiplier = 1) {
 }
 
 function triggerSpecial(player) {
-  if (!canAct(player) || player.attackTimer > 0 || player.meter < 100) {
+  if (!canStartGroundAction(player) || player.attackTimer > 0 || player.meter < 100) {
     return;
   }
   dropCarry(player);
@@ -1587,6 +1939,7 @@ function updatePlayer(dt, now) {
   player.comboLabelTimer = Math.max(0, player.comboLabelTimer - dt);
   player.invuln = Math.max(0, player.invuln - dt);
   player.specialTimer = Math.max(0, player.specialTimer - dt);
+  updateBufferedAttack(player, dt);
   if (player.comboTimer === 0) {
     player.comboCount = 0;
   }
@@ -1596,15 +1949,20 @@ function updatePlayer(dt, now) {
     return;
   }
 
-  if (attackPressed("d")) {
+  const playerDown = isPlayerDown(player);
+  if (playerDown) {
+    cancelPlayerOffense(player);
+  }
+
+  if (!playerDown && attackPressed("d")) {
     triggerSpecial(player);
   }
 
-  if (attackPressed("f")) {
+  if (!playerDown && attackPressed("f")) {
     tryInteract(player);
   }
 
-  if (attackPressed("ArrowLeft")) {
+  if (!playerDown && attackPressed("ArrowLeft")) {
     if (now - player.tapTimers.ArrowLeft < DASH_TAP_WINDOW) {
       player.dashTimer = DASH_DURATION;
       player.facing = -1;
@@ -1612,7 +1970,7 @@ function updatePlayer(dt, now) {
     player.tapTimers.ArrowLeft = now;
   }
 
-  if (attackPressed("ArrowRight")) {
+  if (!playerDown && attackPressed("ArrowRight")) {
     if (now - player.tapTimers.ArrowRight < DASH_TAP_WINDOW) {
       player.dashTimer = DASH_DURATION;
       player.facing = 1;
@@ -1650,6 +2008,15 @@ function updatePlayer(dt, now) {
   }
 
   player.dashTimer = Math.max(0, player.dashTimer - dt);
+  if (player.carrying) {
+    clearBufferedAttack(player);
+  } else {
+    queueBufferedAttack(player, getPressedAttackType(player));
+  }
+
+  if (player.attackTimer > 0 && !canAct(player)) {
+    cancelPlayerOffense(player);
+  }
 
   const carrySlowdown = player.carrying ? 0.78 : 1;
   if (canAct(player) && player.attackTimer === 0) {
@@ -1713,27 +2080,13 @@ function updatePlayer(dt, now) {
       }
     }
 
+    tryConsumeBufferedAttack(player);
     if (player.attackTimer === 0) {
       player.currentAttack = null;
       player.attackVictims.clear();
     }
   } else if (canAct(player)) {
-    const uppercutPressed =
-      (attackPressed("a") && isDown("s")) || (attackPressed("s") && isDown("a"));
-    const downHeld = isDown("ArrowDown");
-    if (attackPressed("q")) {
-      tryStartAttack(player, "sweep");
-    } else if (uppercutPressed) {
-      tryStartAttack(player, "uppercut");
-    } else if (attackPressed("s") && downHeld) {
-      tryStartAttack(player, "wavePunch");
-    } else if (attackPressed("a") && player.dashTimer > 0) {
-      tryStartAttack(player, "dashKnee");
-    } else if (attackPressed("a")) {
-      tryStartAttack(player, "light");
-    } else if (attackPressed("s")) {
-      tryStartAttack(player, "heavy");
-    }
+    tryConsumeBufferedAttack(player);
   }
 
   if (player.specialTimer > 0) {
@@ -2852,27 +3205,6 @@ function applyPlayerPose(player, pose) {
         pose.frontArmA1 = lerp01(0.26, 1.24, t);
         pose.frontArmA2 = lerp01(0.02, 0.16, t);
       }
-    } else if (player.currentAttack === "dashKnee") {
-      if (beat.phase === "startup") {
-        const t = easeOutCubic(beat.t);
-        pose.torsoTilt = lerp01(0.14, 0.28, t);
-        pose.frontLegA1 = lerp01(1.02, 0.28, t);
-        pose.frontLegA2 = lerp01(1.26, 0.82, t);
-        pose.rearLegA1 = lerp01(1.62, 1.88, t);
-        pose.frontArmA1 = lerp01(1.08, 0.42, t);
-      } else if (beat.phase === "active") {
-        const t = easeOutCubic(beat.t);
-        pose.torsoTilt = lerp01(0.24, 0.4, t);
-        pose.frontLegA1 = lerp01(0.28, -0.42, t);
-        pose.frontLegA2 = lerp01(0.82, 0.32, t);
-        pose.rearLegA1 = 1.94;
-        pose.attackTrail = { width: 12, length: 44, lift: -2, alpha: 0.42 + (1 - beat.t) * 0.15 };
-      } else {
-        const t = easeInOutQuad(beat.t);
-        pose.torsoTilt = lerp01(0.24, 0.06, t);
-        pose.frontLegA1 = lerp01(-0.42, 1.08, t);
-        pose.frontLegA2 = lerp01(0.32, 1.18, t);
-      }
     }
   }
 
@@ -3013,6 +3345,34 @@ function drawTelegraph(enemy, x, y) {
   }
 }
 
+function drawEnemyStatus(actor, x, topY) {
+  if (actor.dead || actor.hp <= 0) {
+    return;
+  }
+
+  const labelY = Math.max(12, topY - 18);
+  if (actor.kind === "boss") {
+    ctx.save();
+    ctx.fillStyle = "rgba(25, 14, 20, 0.64)";
+    ctx.fillRect(x - 18, labelY - 10, 36, 14);
+    ctx.fillStyle = "#fff1cf";
+    ctx.font = "12px Trebuchet MS";
+    ctx.textAlign = "center";
+    ctx.fillText(`P${actor.phase}`, x, labelY + 1);
+    ctx.restore();
+    return;
+  }
+
+  const hpRatio = clamp(actor.hp / actor.maxHp, 0, 1);
+  const barW = actor.kind === "brute" ? 58 : 52;
+  const barY = Math.max(10, topY - 14);
+
+  ctx.fillStyle = "rgba(25, 14, 20, 0.72)";
+  ctx.fillRect(x - barW / 2 - 1, barY - 1, barW + 2, 8);
+  ctx.fillStyle = getHealthColor(hpRatio);
+  ctx.fillRect(x - barW / 2, barY, barW * hpRatio, 6);
+}
+
 function drawBrawler(actor, role) {
   if (role === "enemy" && (actor.removed || actor.grabbed)) {
     return;
@@ -3052,7 +3412,7 @@ function drawBrawler(actor, role) {
     drawPlayerSpecialFx(actor, -22, 0.92);
   }
   if (role === "player") {
-    drawPlayerMoveFx(actor, 0.92);
+    drawPlayerMoveFx(actor, 0.92, "back", "brawler");
   }
 
   const torsoTilt = pose.torsoTilt;
@@ -3110,22 +3470,14 @@ function drawBrawler(actor, role) {
 
   drawBootAt(rearLegRig.foot, rearLegRig.footAngle, pose.bootLen, pose.bootHeight, palette.boots, palette.outline);
   drawBootAt(frontLegRig.foot, frontLegRig.footAngle, pose.bootLen, pose.bootHeight, palette.boots, palette.outline);
+  if (role === "player") {
+    drawPlayerMoveFx(actor, 0.92, "front", "brawler");
+  }
   ctx.restore();
 
   if (role === "enemy") {
-    const hpRatio = clamp(actor.hp / actor.maxHp, 0, 1);
-    ctx.fillStyle = "rgba(25, 14, 20, 0.55)";
-    ctx.fillRect(x - 26, y - 100, 52, 6);
-    ctx.fillStyle = actor.kind === "boss" ? "#ff8b73" : actor.kind === "brute" ? "#ffd166" : "#7df79f";
-    ctx.fillRect(x - 26, y - 100, 52 * hpRatio, 6);
-
-    if (actor.kind === "boss") {
-      ctx.fillStyle = "#fff1cf";
-      ctx.font = "12px Trebuchet MS";
-      ctx.textAlign = "center";
-      ctx.fillText(`P${actor.phase}`, x, y - 108);
-      ctx.textAlign = "left";
-    }
+    const topY = y + pose.bounce + pose.yShift - 112 * scale;
+    drawEnemyStatus(actor, x, topY);
   }
 }
 
@@ -3202,6 +3554,14 @@ function getStripFrameIndex(strip, elapsed, speed = 1) {
   return Math.floor(elapsed / stepMs) % count;
 }
 
+function getStripProgressFrameIndex(strip, progress) {
+  const count = strip.frames || 1;
+  if (count <= 1) {
+    return 0;
+  }
+  return Math.min(count - 1, Math.floor(clamp(progress, 0, 0.999) * count));
+}
+
 function drawSpriteFrame(sheet, frameIndex, scale, flashAlpha = 0) {
   let sx;
   let sy;
@@ -3248,7 +3608,10 @@ function choosePlayerSpriteTag(player) {
     return boosted ? "hitBoost" : "hit";
   }
   if (player.carrying) {
-    return "throw";
+    if (dashing && moving) {
+      return boosted ? "walkBoost" : "run";
+    }
+    return moving ? "walk" : "idle";
   }
   if (player.attackTimer > 0 && player.currentAttack) {
     if (player.currentAttack === "light1") {
@@ -3260,8 +3623,11 @@ function choosePlayerSpriteTag(player) {
     if (player.currentAttack === "wavePunch") {
       return "powerPunch";
     }
-    if (player.currentAttack === "dashHeavy" || player.currentAttack === "dashKnee" || player.currentAttack === "sweep") {
-      return boosted ? "powerPunch" : "jumpAttack";
+    if (player.currentAttack === "dashHeavy") {
+      return boosted ? "dashHeavyBoost" : "dashHeavy";
+    }
+    if (player.currentAttack === "sweep") {
+      return boosted ? "sweepBoost" : "sweep";
     }
     return boosted ? "uppercutBoost" : "uppercut";
   }
@@ -3501,7 +3867,148 @@ function drawPlayerSpecialFx(player, yOffset, effectScale = 1) {
   ctx.restore();
 }
 
-function drawPlayerMoveFx(player, effectScale = 1) {
+function drawWavePunchBlast(beat, alpha, effectScale, origin) {
+  const startup = beat.phase === "startup";
+  const active = beat.phase === "active";
+  const recovery = beat.phase === "recovery";
+  const t = startup ? easeOutCubic(beat.t) : active ? easeOutCubic(beat.t) : 1;
+  const fade = recovery ? 1 - beat.t : 1;
+  const coreAlpha = Math.max(0, alpha * (startup ? 0.85 : 1.35) * fade);
+  const originX = origin.x;
+  const originY = origin.y;
+  const waveX = active ? originX + 20 + t * 72 : recovery ? originX + 92 + beat.t * 24 : originX + t * 18;
+  const waveW = startup ? 22 + t * 12 : 74 + t * 38;
+  const waveH = startup ? 18 + t * 8 : 24 + Math.sin(game.time / 36) * 3;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+
+  if (startup) {
+    const charge = 10 + t * 16;
+    const halo = ctx.createRadialGradient(originX, originY, 2, originX, originY, charge * 1.8);
+    halo.addColorStop(0, `rgba(255, 255, 232, ${coreAlpha})`);
+    halo.addColorStop(0.38, `rgba(255, 221, 84, ${coreAlpha * 0.8})`);
+    halo.addColorStop(1, "rgba(255, 126, 58, 0)");
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(originX, originY, charge * 1.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    for (let i = 0; i < 5; i += 1) {
+      const angle = -0.8 + i * 0.4 + Math.sin(game.time / 90 + i) * 0.08;
+      ctx.strokeStyle = `rgba(255, 239, 134, ${coreAlpha * 0.42})`;
+      ctx.lineWidth = 2.2 * effectScale;
+      ctx.beginPath();
+      ctx.moveTo(originX + Math.cos(angle) * 8, originY + Math.sin(angle) * 8);
+      ctx.lineTo(originX + Math.cos(angle) * (24 + t * 16), originY + Math.sin(angle) * (14 + t * 10));
+      ctx.stroke();
+    }
+  } else {
+    const grad = ctx.createLinearGradient(originX, originY, waveX + waveW, originY);
+    grad.addColorStop(0, `rgba(255, 196, 72, ${coreAlpha * 0.24})`);
+    grad.addColorStop(0.42, `rgba(255, 245, 142, ${coreAlpha * 0.72})`);
+    grad.addColorStop(0.72, `rgba(116, 235, 255, ${coreAlpha * 0.48})`);
+    grad.addColorStop(1, "rgba(116, 235, 255, 0)");
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(originX - 4, originY - 8);
+    ctx.bezierCurveTo(waveX - 8, originY - waveH, waveX + waveW * 0.6, originY - waveH * 0.86, waveX + waveW, originY);
+    ctx.bezierCurveTo(waveX + waveW * 0.6, originY + waveH * 0.86, waveX - 8, originY + waveH, originX - 4, originY + 8);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = `rgba(255, 251, 188, ${coreAlpha})`;
+    ctx.lineWidth = 5.5 * effectScale;
+    ctx.beginPath();
+    ctx.moveTo(originX + 4, originY);
+    ctx.bezierCurveTo(waveX - 12, originY - 10, waveX + waveW * 0.48, originY - 12, waveX + waveW, originY);
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(80, 224, 255, ${coreAlpha * 0.62})`;
+    ctx.lineWidth = 2.6 * effectScale;
+    ctx.beginPath();
+    ctx.moveTo(originX + 14, originY + 10);
+    ctx.bezierCurveTo(waveX + 8, originY + 20, waveX + waveW * 0.66, originY + 12, waveX + waveW + 10, originY + 2);
+    ctx.stroke();
+
+    for (let i = 0; i < 4; i += 1) {
+      const ringT = (t + i * 0.17) % 1;
+      const rx = originX + 36 + ringT * 106;
+      ctx.strokeStyle = `rgba(255, 236, 126, ${(1 - ringT * 0.62) * coreAlpha * 0.54})`;
+      ctx.lineWidth = (2.2 - ringT * 0.8) * effectScale;
+      ctx.beginPath();
+      ctx.ellipse(rx, originY, 12 + ringT * 18, 6 + ringT * 9, 0.04, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawUppercutSurge(beat, alpha, effectScale, layer) {
+  const t = beat.phase === "recovery" ? 1 - beat.t * 0.35 : easeOutCubic(beat.t);
+  const fade = beat.phase === "recovery" ? 1 - beat.t : 1;
+  const coreAlpha = alpha * fade;
+  const fistX = 18 + t * 8;
+  const fistY = -90 - t * 22;
+  const baseY = -8;
+
+  ctx.save();
+  ctx.globalCompositeOperation = layer === "front" ? "lighter" : "screen";
+
+  if (layer === "back") {
+    const column = ctx.createLinearGradient(0, baseY, 0, fistY - 34);
+    column.addColorStop(0, `rgba(255, 126, 48, ${coreAlpha * 0.06})`);
+    column.addColorStop(0.46, `rgba(255, 228, 92, ${coreAlpha * 0.22})`);
+    column.addColorStop(1, `rgba(150, 238, 255, ${coreAlpha * 0.12})`);
+    ctx.fillStyle = column;
+    ctx.beginPath();
+    ctx.ellipse(fistX - 6, (baseY + fistY) * 0.5, 30 + t * 10, 76 + t * 22, -0.08, 0, Math.PI * 2);
+    ctx.fill();
+
+    for (let i = 0; i < 3; i += 1) {
+      const offset = -18 + i * 18;
+      ctx.strokeStyle = `rgba(255, 224, 104, ${coreAlpha * (0.26 - i * 0.04)})`;
+      ctx.lineWidth = (5 - i) * effectScale;
+      ctx.beginPath();
+      ctx.moveTo(offset, baseY);
+      ctx.bezierCurveTo(30 - offset * 0.2, -38 - t * 16, -20 + offset * 0.25, -72 - t * 26, fistX + offset * 0.2, fistY);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+    return;
+  }
+
+  ctx.strokeStyle = `rgba(255, 250, 182, ${coreAlpha})`;
+  ctx.lineWidth = 6 * effectScale;
+  ctx.beginPath();
+  ctx.moveTo(fistX - 18, fistY + 42);
+  ctx.bezierCurveTo(fistX + 34, fistY + 18, fistX - 28, fistY - 8, fistX + 22, fistY - 32);
+  ctx.stroke();
+
+  ctx.strokeStyle = `rgba(95, 231, 255, ${coreAlpha * 0.68})`;
+  ctx.lineWidth = 2.6 * effectScale;
+  ctx.beginPath();
+  ctx.moveTo(fistX - 4, fistY + 50);
+  ctx.bezierCurveTo(fistX - 32, fistY + 18, fistX + 28, fistY - 4, fistX - 8, fistY - 42);
+  ctx.stroke();
+
+  const burst = 16 + t * 9;
+  const glow = ctx.createRadialGradient(fistX, fistY - 22, 2, fistX, fistY - 22, burst);
+  glow.addColorStop(0, `rgba(255, 255, 230, ${coreAlpha})`);
+  glow.addColorStop(0.42, `rgba(255, 216, 72, ${coreAlpha * 0.72})`);
+  glow.addColorStop(1, "rgba(255, 126, 58, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(fistX, fistY - 22, burst, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawPlayerMoveFx(player, effectScale = 1, layer = "back", renderer = "sprite") {
   if (player.attackTimer <= 0 || !player.currentAttack) {
     return;
   }
@@ -3515,6 +4022,25 @@ function drawPlayerMoveFx(player, effectScale = 1) {
       : 0.14 * (1 - beat.t);
 
   if (alpha <= 0.02) {
+    return;
+  }
+
+  if (player.currentAttack === "wavePunch") {
+    if (layer === "front") {
+      const punchOrigin = renderer === "brawler"
+        ? { x: 42, y: -38 }
+        : { x: 48, y: -72 };
+      drawWavePunchBlast(beat, alpha, effectScale, punchOrigin);
+    }
+    return;
+  }
+
+  if (player.currentAttack === "uppercut") {
+    drawUppercutSurge(beat, alpha, effectScale, layer);
+    return;
+  }
+
+  if (layer !== "back") {
     return;
   }
 
@@ -3532,37 +4058,6 @@ function drawPlayerMoveFx(player, effectScale = 1) {
     ctx.lineWidth = 4 * effectScale;
     ctx.beginPath();
     ctx.ellipse(30 + t * 12, -2, 22 + t * 10, 6, 0.04, -0.2, 1.1);
-    ctx.stroke();
-  } else if (player.currentAttack === "wavePunch") {
-    const drift = 18 + t * 72;
-    ctx.strokeStyle = `rgba(255, 229, 141, ${alpha})`;
-    ctx.lineWidth = 10 * effectScale;
-    ctx.beginPath();
-    ctx.ellipse(26 + drift, -34, 20 + t * 22, 10 + t * 8, 0.16, -0.85, 0.85);
-    ctx.stroke();
-    ctx.strokeStyle = `rgba(255, 119, 73, ${alpha * 0.72})`;
-    ctx.lineWidth = 5 * effectScale;
-    ctx.beginPath();
-    ctx.ellipse(34 + drift, -34, 12 + t * 16, 8 + t * 5, 0.16, -0.85, 0.85);
-    ctx.stroke();
-  } else if (player.currentAttack === "dashKnee") {
-    ctx.strokeStyle = `rgba(255, 223, 126, ${alpha})`;
-    ctx.lineWidth = 11 * effectScale;
-    ctx.beginPath();
-    ctx.moveTo(-8, -44);
-    ctx.lineTo(56 + t * 24, -4);
-    ctx.stroke();
-    ctx.strokeStyle = `rgba(255, 148, 81, ${alpha * 0.68})`;
-    ctx.lineWidth = 5 * effectScale;
-    ctx.beginPath();
-    ctx.moveTo(6, -36);
-    ctx.lineTo(48 + t * 20, 2);
-    ctx.stroke();
-  } else if (player.currentAttack === "uppercut") {
-    ctx.strokeStyle = `rgba(255, 232, 154, ${alpha})`;
-    ctx.lineWidth = 10 * effectScale;
-    ctx.beginPath();
-    ctx.arc(6, -18, 32 + t * 12, -1.45, -0.1);
     ctx.stroke();
   } else if (player.currentAttack === "dashHeavy") {
     ctx.strokeStyle = `rgba(255, 214, 122, ${alpha})`;
@@ -3623,7 +4118,7 @@ function drawSpriteFighter(actor, role) {
     drawPlayerSpecialFx(actor, -34, 0.94);
   }
   if (role === "player") {
-    drawPlayerMoveFx(actor, 0.94);
+    drawPlayerMoveFx(actor, 0.94, "back", "sprite");
   }
 
   const moveMag = Math.hypot(actor.vx || 0, actor.vy || 0);
@@ -3633,7 +4128,12 @@ function drawSpriteFighter(actor, role) {
   const speed = role === "player"
     ? (tag === "run" ? clamp(moveMag / 112, 0.95, 1.78) : clamp(moveMag / 175, 0.48, 1.08))
     : clamp(moveMag / 90, 0.7, 1.5);
-  const frameIndex = getStripFrameIndex(strip, game.time + actor.x * 0.2, speed);
+  const activeAttack = role === "player" && actor.currentAttack && attacks[actor.currentAttack]
+    ? attacks[actor.currentAttack]
+    : null;
+  const frameIndex = activeAttack
+    ? getStripProgressFrameIndex(strip, (activeAttack.duration - actor.attackTimer) / activeAttack.duration)
+    : getStripFrameIndex(strip, game.time + actor.x * 0.2, speed);
   const flashAlpha = actor.hitFlash > 0 ? clamp(actor.hitFlash / 190, 0, 0.72) : 0;
 
   let rotation = 0;
@@ -3657,8 +4157,11 @@ function drawSpriteFighter(actor, role) {
     }
   }
   drawSpriteFrame(strip, frameIndex, scale, flashAlpha);
+  if (role === "player") {
+    drawPlayerMoveFx(actor, 0.94, "front", "sprite");
+  }
 
-  if (role === "enemy" && actor.kind !== "thug") {
+  if (role === "enemy" && (actor.kind === "brute" || actor.kind === "boss")) {
     ctx.save();
     ctx.globalCompositeOperation = "source-atop";
     ctx.globalAlpha = actor.kind === "boss" ? 0.12 : 0.08;
@@ -3670,19 +4173,8 @@ function drawSpriteFighter(actor, role) {
   ctx.restore();
 
   if (role === "enemy") {
-    const hpRatio = clamp(actor.hp / actor.maxHp, 0, 1);
-    ctx.fillStyle = "rgba(25, 14, 20, 0.55)";
-    ctx.fillRect(x - 26, y - 100, 52, 6);
-    ctx.fillStyle = actor.kind === "boss" ? "#ff8b73" : actor.kind === "brute" ? "#ffd166" : "#7df79f";
-    ctx.fillRect(x - 26, y - 100, 52 * hpRatio, 6);
-
-    if (actor.kind === "boss") {
-      ctx.fillStyle = "#fff1cf";
-      ctx.font = "12px Trebuchet MS";
-      ctx.textAlign = "center";
-      ctx.fillText(`P${actor.phase}`, x, y - 108);
-      ctx.textAlign = "left";
-    }
+    const topY = y - strip.anchorY * scale;
+    drawEnemyStatus(actor, x, topY);
   }
 
   return true;
@@ -3999,24 +4491,28 @@ function frame(now) {
 
   update(dt, now);
   draw();
+  if (attackPressed("PageDown")) {
+    captureCanvasScreenshot();
+  }
   justPressed.clear();
   requestAnimationFrame(frame);
 }
 
-function normalizeKey(key) {
-  if (key === "a" || key === "A") return "a";
-  if (key === "s" || key === "S") return "s";
-  if (key === "d" || key === "D") return "d";
-  if (key === "f" || key === "F") return "f";
-  if (key === "q" || key === "Q") return "q";
-  if (key === "r" || key === "R") return "r";
-  if (key === "Shift" || key === "ShiftLeft" || key === "ShiftRight") return "shift";
+function normalizeKey(key, code = "") {
+  if (code === "KeyA" || key === "a" || key === "A") return "a";
+  if (code === "KeyS" || key === "s" || key === "S") return "s";
+  if (code === "KeyD" || key === "d" || key === "D") return "d";
+  if (code === "KeyF" || key === "f" || key === "F") return "f";
+  if (code === "KeyQ" || key === "q" || key === "Q") return "q";
+  if (code === "KeyR" || key === "r" || key === "R") return "r";
+  if (code === "PageDown" || key === "PageDown") return "PageDown";
+  if (code === "ShiftLeft" || code === "ShiftRight" || key === "Shift") return "shift";
   return key;
 }
 
 window.addEventListener("keydown", (event) => {
-  const key = normalizeKey(event.key);
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "a", "s", "d", "f", "q", "r", "shift"].includes(key)) {
+  const key = normalizeKey(event.key, event.code);
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageDown", "a", "s", "d", "f", "q", "r", "shift"].includes(key)) {
     event.preventDefault();
   }
   if (!keys.has(key)) {
@@ -4026,7 +4522,7 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
-  keys.delete(normalizeKey(event.key));
+  keys.delete(normalizeKey(event.key, event.code));
 });
 
 resetGame();

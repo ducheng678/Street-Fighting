@@ -1,0 +1,4 @@
+Source: user-provided/generated sprite bundle
+Original file: red_guard_little_red_book_bundle.zip
+Imported: 2026-05-03
+Notes: Five transparent PNG sprite sheets for idle, walk, punch, hurt, and knockout. This version adds the little red book prop to the red armband guard.
