@@ -18,6 +18,10 @@ let spriteSanitizePending = 0;
 let spriteSanitizeFailed = 0;
 let spriteSanitizeReset = false;
 
+const backgrounds = {
+  tiananmen: loadSpriteImage("./assets/backgrounds/tiananmen_stage_bg.png"),
+};
+
 function resetCanvasExportState() {
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
@@ -2636,7 +2640,39 @@ function drawTiananmenRoof(x, y, width, height) {
   ctx.fillRect(x + width * 0.08, y + height * 0.82, width * 0.84, height * 0.1);
 }
 
+function drawTiananmenImageBackdrop() {
+  const image = backgrounds.tiananmen;
+  if (!image.complete || !image.naturalWidth) {
+    return false;
+  }
+
+  const drawH = Math.round((WIDTH * image.naturalHeight) / image.naturalWidth);
+  const drawY = -145;
+  ctx.drawImage(image, 0, drawY, WIDTH, drawH);
+
+  const floorSourceH = Math.floor(image.naturalHeight * 0.22);
+  ctx.drawImage(
+    image,
+    0,
+    image.naturalHeight - floorSourceH,
+    image.naturalWidth,
+    floorSourceH,
+    0,
+    HEIGHT - 150,
+    WIDTH,
+    150
+  );
+
+  ctx.fillStyle = "rgba(255, 194, 112, 0.08)";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  return true;
+}
+
 function drawTiananmenBackdrop() {
+  if (drawTiananmenImageBackdrop()) {
+    return;
+  }
+
   const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
   sky.addColorStop(0, "#f8d483");
   sky.addColorStop(0.55, "#e98b5a");

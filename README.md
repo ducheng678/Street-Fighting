@@ -30,7 +30,7 @@ Double-click `start-game.bat`. It starts a local game server and opens the brows
 - Hit pauses, hit compression, and clearer action phases for moves
 - Player and enemy sprites have switched to sprite sheet rendering, moving away from purely programmed characters
 - Enemy stages are ordered as red armband guards, tank, police, Hazmat workers, and the final dictator boss
-- The tank stage uses a stylized Tiananmen gate / square backdrop
+- The tank stage uses a user-provided/generated Tiananmen gate / square background image
 - The final boss now uses user-provided/generated transparent sprite sheets with a pink virus-shaped head, green commander uniform, medals, epaulettes, cape, and corrected full-body attack frames
 - Enemy grabbing, scene object interaction, and throwing damage
 - Four types of regular enemies and a final boss with two phases
@@ -52,6 +52,7 @@ Double-click `start-game.bat`. It starts a local game server and opens the brows
 - Regular enemy sprites are sourced from CraftPix / Free Game Assets' `Free 2D Police Character Sprites`, trimmed to the required frames and lightly color-adjusted
 - Red armband guard enemy sprites are user-provided/generated transparent sprite sheets from `red_guard_little_red_book_bundle.zip`; confirm usage rights before public release
 - Tank enemy sprites are user-provided/generated transparent sprite sheets from `tank_sheets_standard_v2_bundle.zip`; confirm usage rights before public release
+- Tank stage background is user-provided/generated as `assets/backgrounds/tiananmen_stage_bg.png`; confirm usage rights before public release
 - Elite enemies temporarily use Kruk2024's `Hazmat guy 2D animations` with color adjustments; it is available for free download but does not explicitly state CC0/open-source licensing, so release rights need confirmation before official release
 - Final boss sprite sheets are user-provided/generated satire assets; confirm usage rights before public release
 - Burst effect sprites are sourced from `OpenGameArt`'s `FX charge` and `Ring Explosion`, licensed under `CC0`
