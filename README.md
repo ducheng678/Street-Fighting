@@ -33,6 +33,7 @@ Double-click `start-game.bat`. It starts a local game server and opens the brows
 - The tank stage uses a user-provided/generated Tiananmen gate / square background image
 - The final boss now uses user-provided/generated transparent sprite sheets with a pink virus-shaped head, green commander uniform, medals, epaulettes, cape, and corrected full-body attack frames
 - Enemy grabbing, scene object interaction, and throwing damage
+- Random ground health packs can spawn during fights and restore player health on contact
 - Four types of regular enemies and a final boss with two phases
 - Ground warnings and clearer boss attack range indicators
 - Tank enemies now have cannon fire and a close-range crushing charge attack

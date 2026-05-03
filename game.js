@@ -12,6 +12,13 @@ const DASH_TAP_WINDOW = 330;
 const DASH_DURATION = 340;
 const DASH_HOLD_REFRESH = 190;
 const ATTACK_BUFFER_MS = 220;
+const HEALTH_PACK_HEAL = 45;
+const HEALTH_PACK_MAX_ACTIVE = 2;
+const HEALTH_PACK_FIRST_DELAY_MIN = 2400;
+const HEALTH_PACK_FIRST_DELAY_MAX = 5200;
+const HEALTH_PACK_SPAWN_MIN = 5800;
+const HEALTH_PACK_SPAWN_MAX = 10400;
+const HEALTH_PACK_LIFETIME = 18000;
 
 const spriteObjectUrls = [];
 let spriteSanitizePending = 0;
@@ -1133,6 +1140,13 @@ class Prop {
       this.explosive = false;
       this.color = "#9f6b42";
       this.label = "木箱";
+    } else if (type === "health") {
+      this.damage = 0;
+      this.explosive = false;
+      this.color = "#d9344a";
+      this.label = "血包";
+      this.heal = HEALTH_PACK_HEAL;
+      this.lifeTimer = HEALTH_PACK_LIFETIME;
     } else {
       this.damage = 18;
       this.explosive = false;
@@ -1164,6 +1178,7 @@ const game = {
   specialFlashDuration: 0,
   specialRaysTimer: 0,
   specialRaysDuration: 0,
+  healthPackTimer: 0,
 };
 
 function buildZones() {
@@ -1195,6 +1210,7 @@ function resetGame() {
   game.specialFlashDuration = 0;
   game.specialRaysTimer = 0;
   game.specialRaysDuration = 0;
+  scheduleNextHealthPack(rand(HEALTH_PACK_FIRST_DELAY_MIN, HEALTH_PACK_FIRST_DELAY_MAX));
 }
 
 function queueBanner(text, ms = 1800) {
@@ -1205,6 +1221,98 @@ function queueBanner(text, ms = 1800) {
 function queueMessage(text, ms = 1400) {
   game.message = text;
   game.messageTimer = ms;
+}
+
+function scheduleNextHealthPack(delay = rand(HEALTH_PACK_SPAWN_MIN, HEALTH_PACK_SPAWN_MAX)) {
+  game.healthPackTimer = delay;
+}
+
+function activeHealthPackCount() {
+  return game.props.filter((prop) => prop.type === "health" && !prop.removed).length;
+}
+
+function getHealthPackSpawnBounds() {
+  const zone = game.activeZone;
+  const marginX = 72;
+  if (zone) {
+    return {
+      left: zone.left + marginX,
+      right: zone.right - marginX,
+      top: world.top + 20,
+      bottom: world.bottom - 20,
+    };
+  }
+
+  const left = clamp(game.player.x - 260, 60, world.width - 140);
+  return {
+    left,
+    right: clamp(game.player.x + 320, left + 90, world.width - 60),
+    top: world.top + 20,
+    bottom: world.bottom - 20,
+  };
+}
+
+function spawnHealthPack() {
+  const player = game.player;
+  if (!game.activeZone || player.hp <= 0 || player.hp >= player.maxHp) {
+    return false;
+  }
+  if (activeHealthPackCount() >= HEALTH_PACK_MAX_ACTIVE) {
+    return false;
+  }
+
+  const bounds = getHealthPackSpawnBounds();
+  const x = rand(bounds.left, bounds.right);
+  const y = rand(bounds.top, bounds.bottom);
+  game.props.push(new Prop("health", x, y, game.activeZone.id));
+  queueMessage("地上出现了血包，靠近自动恢复", 1100);
+  return true;
+}
+
+function updateHealthPackSpawns(dt) {
+  if (game.state !== "fight" || !game.activeZone || game.player.hp <= 0) {
+    return;
+  }
+
+  game.healthPackTimer = Math.max(0, game.healthPackTimer - dt);
+  if (game.healthPackTimer === 0) {
+    spawnHealthPack();
+    scheduleNextHealthPack();
+  }
+}
+
+function collectHealthPack(player, prop) {
+  if (prop.removed || prop.type !== "health" || player.hp <= 0 || player.hp >= player.maxHp) {
+    return false;
+  }
+
+  const heal = Math.min(prop.heal || HEALTH_PACK_HEAL, player.maxHp - player.hp);
+  if (heal <= 0) {
+    return false;
+  }
+
+  player.hp += heal;
+  prop.removed = true;
+  spawnBurst(prop.x, prop.y - 24, "rgba(112, 255, 155, 0.9)", 18);
+  queueMessage(`血包恢复 ${Math.ceil(heal)} 点生命`, 900);
+  return true;
+}
+
+function collectNearbyHealthPacks(player) {
+  if (isPlayerDown(player)) {
+    return;
+  }
+
+  for (const prop of game.props) {
+    if (prop.type !== "health" || prop.removed || prop.z !== 0) {
+      continue;
+    }
+    const dx = Math.abs(prop.x - player.x);
+    const dy = Math.abs(prop.y - player.y);
+    if (dx <= 34 && dy <= 28 && collectHealthPack(player, prop)) {
+      break;
+    }
+  }
 }
 
 function screenshotFilename() {
@@ -1309,6 +1417,7 @@ function spawnSpecialBurst(player) {
 function spawnZone(zone) {
   zone.started = true;
   game.activeZone = zone;
+  scheduleNextHealthPack(rand(HEALTH_PACK_FIRST_DELAY_MIN, HEALTH_PACK_FIRST_DELAY_MAX));
   for (const enemy of zone.enemies) {
     game.enemies.push(new Enemy(enemy.kind, enemy.x, enemy.y, zone.id));
   }
@@ -1504,7 +1613,7 @@ function nearestPickupProp(player) {
   let best = null;
   let bestDist = 9999;
   for (const prop of game.props) {
-    if (prop.removed || prop.broken || prop.carried || prop.z !== 0) {
+    if (prop.type === "health" || prop.removed || prop.broken || prop.carried || prop.z !== 0) {
       continue;
     }
     const dx = Math.abs(prop.x - player.x);
@@ -2273,6 +2382,7 @@ function updatePlayer(dt, now) {
   }
   player.x = clamp(player.x, minX, maxX);
   player.y = clamp(player.y, world.top, world.bottom);
+  collectNearbyHealthPacks(player);
 }
 
 function resolveEnemyAttack(enemy, player) {
@@ -2501,6 +2611,14 @@ function updateProps(dt) {
       continue;
     }
 
+    if (prop.type === "health") {
+      prop.lifeTimer -= dt;
+      if (prop.lifeTimer <= 0) {
+        prop.removed = true;
+      }
+      continue;
+    }
+
     prop.thrownTimer = Math.max(0, prop.thrownTimer - dt);
     if (prop.thrownTimer > 0) {
       impactThrownProp(prop);
@@ -2602,6 +2720,7 @@ function update(dt, now) {
   updatePlayer(dt, now);
   updateEnemies(dt);
   updateProps(dt);
+  updateHealthPackSpawns(dt);
   updateParticles(dt);
   updateZones();
   updateCamera();
@@ -4584,6 +4703,30 @@ function drawProp(prop) {
   drawShadow(prop.x, prop.y, 0.82);
   ctx.save();
   ctx.translate(x, y);
+
+  if (prop.type === "health") {
+    const bob = Math.sin(game.time / 260 + prop.x * 0.03) * 2;
+    const pulse = 0.72 + Math.sin(game.time / 180 + prop.y * 0.04) * 0.28;
+    ctx.translate(0, bob);
+    ctx.globalCompositeOperation = "screen";
+    ctx.fillStyle = `rgba(118, 255, 154, ${0.12 + pulse * 0.16})`;
+    ctx.beginPath();
+    ctx.arc(0, -23, 25 + pulse * 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#b82036";
+    ctx.fillRect(-16, -35, 32, 25);
+    ctx.fillStyle = "#ef4f62";
+    ctx.fillRect(-12, -40, 24, 8);
+    ctx.fillStyle = "#7d1725";
+    ctx.fillRect(-15, -13, 30, 4);
+    ctx.fillStyle = "#fff8ec";
+    ctx.fillRect(-3, -32, 6, 16);
+    ctx.fillRect(-10, -27, 20, 6);
+    ctx.restore();
+    return;
+  }
+
   ctx.fillStyle = prop.color;
 
   if (prop.type === "crate") {
