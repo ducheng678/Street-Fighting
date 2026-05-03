@@ -838,7 +838,12 @@ const zoneTemplates = [
     triggerX: 980,
     left: 930,
     right: 1430,
-    enemies: [{ kind: "tank", x: 1190, y: 326 }],
+    enemies: [
+      { kind: "tank", x: 1080, y: 242 },
+      { kind: "tank", x: 1240, y: 296 },
+      { kind: "tank", x: 1120, y: 366 },
+      { kind: "tank", x: 1340, y: 408 },
+    ],
     props: [
       { type: "barrel", x: 1210, y: 372 },
       { type: "can", x: 1030, y: 394 },
