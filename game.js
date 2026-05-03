@@ -665,7 +665,7 @@ const vfxSheets = {
 };
 
 const world = {
-  width: 3860,
+  width: 3260,
   top: 205,
   bottom: 425,
 };
@@ -818,14 +818,14 @@ const attacks = {
 const zoneTemplates = [
   {
     id: 0,
-    name: "小巷口",
+    name: "红卫兵路障",
     triggerX: 360,
     left: 300,
     right: 790,
     enemies: [
-      { kind: "thug", x: 580, y: 252 },
-      { kind: "thug", x: 690, y: 316 },
-      { kind: "thug", x: 620, y: 385 },
+      { kind: "red_guard", x: 520, y: 245 },
+      { kind: "red_guard", x: 665, y: 315 },
+      { kind: "red_guard", x: 590, y: 388 },
     ],
     props: [
       { type: "can", x: 500, y: 382 },
@@ -834,16 +834,11 @@ const zoneTemplates = [
   },
   {
     id: 1,
-    name: "烧烤摊",
+    name: "8964坦克封锁线",
     triggerX: 980,
     left: 930,
     right: 1430,
-    enemies: [
-      { kind: "thug", x: 1100, y: 238 },
-      { kind: "thug", x: 1290, y: 294 },
-      { kind: "brute", x: 1160, y: 355 },
-      { kind: "thug", x: 1340, y: 398 },
-    ],
+    enemies: [{ kind: "tank", x: 1190, y: 326 }],
     props: [
       { type: "barrel", x: 1210, y: 372 },
       { type: "can", x: 1030, y: 394 },
@@ -851,16 +846,16 @@ const zoneTemplates = [
   },
   {
     id: 2,
-    name: "天桥下",
+    name: "警察路障",
     triggerX: 1630,
     left: 1560,
     right: 2040,
     enemies: [
       { kind: "thug", x: 1710, y: 228 },
-      { kind: "brute", x: 1875, y: 272 },
+      { kind: "thug", x: 1875, y: 272 },
       { kind: "thug", x: 1765, y: 323 },
       { kind: "thug", x: 1940, y: 376 },
-      { kind: "brute", x: 1670, y: 405 },
+      { kind: "thug", x: 1670, y: 405 },
     ],
     props: [
       { type: "crate", x: 1812, y: 255 },
@@ -869,14 +864,14 @@ const zoneTemplates = [
   },
   {
     id: 3,
-    name: "红袖章路障",
+    name: "大白封控点",
     triggerX: 2180,
     left: 2120,
     right: 2540,
     enemies: [
-      { kind: "red_guard", x: 2265, y: 238 },
-      { kind: "red_guard", x: 2400, y: 302 },
-      { kind: "red_guard", x: 2315, y: 382 },
+      { kind: "brute", x: 2265, y: 238 },
+      { kind: "brute", x: 2400, y: 302 },
+      { kind: "brute", x: 2315, y: 382 },
       { kind: "brute", x: 2480, y: 350 },
     ],
     props: [
@@ -886,30 +881,14 @@ const zoneTemplates = [
   },
   {
     id: 4,
-    name: "8964坦克封锁线",
+    name: "独裁者据点",
     triggerX: 2740,
     left: 2680,
-    right: 3140,
-    enemies: [
-      { kind: "red_guard", x: 2805, y: 252 },
-      { kind: "tank", x: 2945, y: 326 },
-      { kind: "red_guard", x: 3055, y: 392 },
-    ],
+    right: 3120,
+    enemies: [{ kind: "boss", x: 2940, y: 322 }],
     props: [
-      { type: "barrel", x: 2760, y: 385 },
-      { type: "crate", x: 3100, y: 270 },
-    ],
-  },
-  {
-    id: 5,
-    name: "独裁者据点",
-    triggerX: 3340,
-    left: 3280,
-    right: 3720,
-    enemies: [{ kind: "boss", x: 3540, y: 322 }],
-    props: [
-      { type: "barrel", x: 3390, y: 385 },
-      { type: "can", x: 3635, y: 250 },
+      { type: "barrel", x: 2790, y: 385 },
+      { type: "can", x: 3035, y: 250 },
     ],
     boss: true,
   },
@@ -1112,7 +1091,7 @@ class Enemy extends Fighter {
       this.size = 1;
       this.bodyColor = "#00a8b7";
       this.accentColor = "#ffdf6f";
-      this.name = "蓝制服队员";
+      this.name = "警察队员";
     }
   }
 }

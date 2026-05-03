@@ -24,12 +24,12 @@ Double-click `start-game.bat`. It starts a local game server and opens the brows
 ## Current Features
 
 - Horizontal scrolling levels
-- Six-stage area clearing
+- Five-stage area clearing
 - Light and heavy attacks with basic combos
 - Hit reactions, knockbacks, combo counts, scores, and burst meter
 - Hit pauses, hit compression, and clearer action phases for moves
 - Player and enemy sprites have switched to sprite sheet rendering, moving away from purely programmed characters
-- Regular enemies include blue uniform characters, user-provided red armband guard sprites, an armored tank enemy, and elite Hazmat animation assets that resemble biohazard suits
+- Enemy stages are ordered as red armband guards, tank, police, Hazmat workers, and the final dictator boss
 - The final boss now uses user-provided/generated transparent sprite sheets with a pink virus-shaped head, green commander uniform, medals, epaulettes, cape, and corrected full-body attack frames
 - Enemy grabbing, scene object interaction, and throwing damage
 - Four types of regular enemies and a final boss with two phases
