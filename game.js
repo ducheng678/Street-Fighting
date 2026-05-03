@@ -835,6 +835,7 @@ const zoneTemplates = [
   {
     id: 1,
     name: "8964坦克封锁线",
+    backdrop: "tiananmen",
     triggerX: 980,
     left: 930,
     right: 1830,
@@ -2603,7 +2604,119 @@ function update(dt, now) {
   cleanupRemovedActors();
 }
 
+function getCurrentBackdrop() {
+  if (game.activeZone && game.activeZone.backdrop) {
+    return game.activeZone.backdrop;
+  }
+
+  return game.zones.find((zone) =>
+    zone.backdrop &&
+    game.player.x >= zone.left - 90 &&
+    game.player.x <= zone.right + 90
+  )?.backdrop || "street";
+}
+
+function drawTiananmenRoof(x, y, width, height) {
+  ctx.fillStyle = "#542312";
+  ctx.beginPath();
+  ctx.moveTo(x - width * 0.08, y + height * 0.72);
+  ctx.quadraticCurveTo(x + width * 0.5, y - height * 0.16, x + width * 1.08, y + height * 0.72);
+  ctx.lineTo(x + width * 0.98, y + height);
+  ctx.lineTo(x + width * 0.02, y + height);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#c99128";
+  for (let i = 0; i < 8; i += 1) {
+    const px = x + width * (0.09 + i * 0.115);
+    ctx.fillRect(px, y + height * 0.68, width * 0.055, height * 0.18);
+  }
+
+  ctx.fillStyle = "#f1ca61";
+  ctx.fillRect(x + width * 0.08, y + height * 0.82, width * 0.84, height * 0.1);
+}
+
+function drawTiananmenBackdrop() {
+  const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+  sky.addColorStop(0, "#f8d483");
+  sky.addColorStop(0.55, "#e98b5a");
+  sky.addColorStop(1, "#8c5142");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  ctx.fillStyle = "rgba(255, 238, 174, 0.9)";
+  ctx.beginPath();
+  ctx.arc(835, 78, 42, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(97, 43, 38, 0.28)";
+  const monumentOffset = -(game.cameraX * 0.12) % 260;
+  for (let i = -1; i < 6; i += 1) {
+    const x = monumentOffset + i * 260;
+    ctx.fillRect(x + 70, 124, 28, 78);
+    ctx.fillRect(x + 45, 194, 78, 10);
+  }
+
+  const gateX = WIDTH * 0.5 - (game.cameraX * 0.18) % 160;
+  const baseY = 190;
+  ctx.fillStyle = "#8e241c";
+  ctx.fillRect(gateX - 320, baseY, 640, 104);
+  ctx.fillStyle = "#b73525";
+  ctx.fillRect(gateX - 300, baseY + 14, 600, 72);
+  ctx.fillStyle = "#6d1714";
+  ctx.fillRect(gateX - 320, baseY + 94, 640, 14);
+
+  drawTiananmenRoof(gateX - 244, baseY - 74, 488, 74);
+  drawTiananmenRoof(gateX - 346, baseY - 35, 190, 48);
+  drawTiananmenRoof(gateX + 156, baseY - 35, 190, 48);
+
+  ctx.fillStyle = "#4b1612";
+  for (let i = 0; i < 5; i += 1) {
+    const archX = gateX - 220 + i * 110;
+    ctx.beginPath();
+    ctx.moveTo(archX, baseY + 94);
+    ctx.lineTo(archX, baseY + 60);
+    ctx.quadraticCurveTo(archX + 29, baseY + 28, archX + 58, baseY + 60);
+    ctx.lineTo(archX + 58, baseY + 94);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "#f0c55b";
+  for (let i = 0; i < 9; i += 1) {
+    ctx.fillRect(gateX - 270 + i * 68, baseY + 16, 18, 48);
+  }
+
+  ctx.fillStyle = "#9f5a3a";
+  ctx.fillRect(0, 194, WIDTH, HEIGHT - 194);
+  ctx.fillStyle = "#7e4634";
+  ctx.fillRect(0, 214, WIDTH, HEIGHT - 214);
+  ctx.fillStyle = "#b38a65";
+  ctx.fillRect(0, world.top, WIDTH, world.bottom - world.top);
+  ctx.fillStyle = "#6a3a2e";
+  ctx.fillRect(0, world.top - 10, WIDTH, 14);
+
+  ctx.strokeStyle = "rgba(73, 45, 34, 0.18)";
+  for (let i = 0; i < 18; i += 1) {
+    ctx.beginPath();
+    ctx.moveTo(0, world.top + i * 13);
+    ctx.lineTo(WIDTH, world.top + i * 13);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "rgba(255, 225, 155, 0.18)";
+  const pavingOffset = -(game.cameraX * 0.68) % 170;
+  for (let i = -1; i < 8; i += 1) {
+    ctx.fillRect(pavingOffset + i * 170, 438, 96, 8);
+  }
+}
+
 function drawBackground() {
+  if (getCurrentBackdrop() === "tiananmen") {
+    drawTiananmenBackdrop();
+    return;
+  }
+
   const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
   sky.addColorStop(0, "#ffe78a");
   sky.addColorStop(0.56, "#ff9b62");

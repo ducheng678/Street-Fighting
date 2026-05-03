@@ -30,6 +30,7 @@ Double-click `start-game.bat`. It starts a local game server and opens the brows
 - Hit pauses, hit compression, and clearer action phases for moves
 - Player and enemy sprites have switched to sprite sheet rendering, moving away from purely programmed characters
 - Enemy stages are ordered as red armband guards, tank, police, Hazmat workers, and the final dictator boss
+- The tank stage uses a stylized Tiananmen gate / square backdrop
 - The final boss now uses user-provided/generated transparent sprite sheets with a pink virus-shaped head, green commander uniform, medals, epaulettes, cape, and corrected full-body attack frames
 - Enemy grabbing, scene object interaction, and throwing damage
 - Four types of regular enemies and a final boss with two phases
