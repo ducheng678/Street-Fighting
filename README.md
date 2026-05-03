@@ -34,6 +34,7 @@ Double-click `start-game.bat`. It starts a local game server and opens the brows
 - Enemy grabbing, scene object interaction, and throwing damage
 - Four types of regular enemies and a final boss with two phases
 - Ground warnings and clearer boss attack range indicators
+- Tank enemies now have cannon fire and a close-range crushing charge attack
 - Burst effects have been transformed into a golden transformation aura, featuring flame outlines, lightning, vertical energy columns, white flashes, radiating lines, and explosion circle effects
 - Added two new attack branches: `Leg Sweep / Wave Punch`, which are more in line with fighting game rhythms
 

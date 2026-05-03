@@ -1059,6 +1059,9 @@ class Enemy extends Fighter {
     this.attackType = "jab";
     this.attackFacing = 1;
     this.attackWindupTotal = 0;
+    this.crushTimer = 0;
+    this.crushDuration = 0;
+    this.crushVictims = new Set();
     this.phase = 1;
     this.phaseTransition = 0;
     this.phaseTransitionTotal = 0;
@@ -1689,20 +1692,47 @@ function getBossAttackSpec(enemy) {
   return specs[enemy.attackType] || specs.rush;
 }
 
-function getTankAttackSpec() {
-  return {
-    label: "炮击",
-    reachX: 286,
-    depth: 56,
-    damage: 28,
-    push: 310,
-    launch: -120,
-    windup: 620,
-    shake: 16,
-    cooldownMin: 1120,
-    cooldownMax: 1680,
-    telegraphColor: "255, 196, 98",
+function getTankAttackSpec(type = "fire") {
+  const specs = {
+    fire: {
+      label: "炮击",
+      shape: "frontal",
+      reachX: 286,
+      depth: 56,
+      damage: 28,
+      push: 310,
+      launch: -120,
+      windup: 620,
+      shake: 16,
+      cooldownMin: 1120,
+      cooldownMax: 1680,
+      telegraphColor: "255, 196, 98",
+    },
+    crush: {
+      label: "碾压",
+      shape: "crush",
+      reachX: 176,
+      depth: 48,
+      damage: 38,
+      push: 380,
+      launch: -155,
+      windup: 360,
+      dashVel: 430,
+      duration: 430,
+      shake: 18,
+      cooldownMin: 1320,
+      cooldownMax: 1900,
+      telegraphColor: "255, 105, 76",
+    },
   };
+  return specs[type] || specs.fire;
+}
+
+function chooseTankAttack(enemy, distX, distY) {
+  if (distX < 145 && distY < 44) {
+    return "crush";
+  }
+  return "fire";
 }
 
 function triggerBossPhaseTwo(enemy) {
@@ -2286,13 +2316,24 @@ function resolveEnemyAttack(enemy, player) {
     }
     enemy.attackCooldown = rand(spec.cooldownMin, spec.cooldownMax);
   } else if (enemy.kind === "tank") {
-    const spec = getTankAttackSpec();
+    const spec = getTankAttackSpec(enemy.attackType);
     const frontDistance = (player.x - enemy.x) * direction;
-    spawnBurst(enemy.x + direction * 118, enemy.y - 58, "rgba(255, 206, 96, 0.92)", 18);
-    game.cameraShake = Math.max(game.cameraShake, spec.shake);
-    if (frontDistance >= 0 && frontDistance <= spec.reachX && dy <= spec.depth) {
-      hurtPlayer(enemy, spec.damage, direction * spec.push, spec.launch);
+
+    if (enemy.attackType === "crush") {
+      enemy.crushTimer = spec.duration;
+      enemy.crushDuration = spec.duration;
+      enemy.crushVictims.clear();
+      enemy.vx = direction * spec.dashVel;
+      enemy.vy = 0;
+      spawnBurst(enemy.x + direction * 72, enemy.y - 12, "rgba(211, 190, 130, 0.72)", 22);
+    } else {
+      spawnBurst(enemy.x + direction * 118, enemy.y - 58, "rgba(255, 206, 96, 0.92)", 18);
+      if (frontDistance >= 0 && frontDistance <= spec.reachX && dy <= spec.depth) {
+        hurtPlayer(enemy, spec.damage, direction * spec.push, spec.launch);
+      }
     }
+
+    game.cameraShake = Math.max(game.cameraShake, spec.shake);
     enemy.attackCooldown = rand(spec.cooldownMin, spec.cooldownMax);
   } else {
     const frontDistance = (player.x - enemy.x) * enemy.facing;
@@ -2301,6 +2342,23 @@ function resolveEnemyAttack(enemy, player) {
     }
     enemy.attackCooldown = rand(700, 1200);
   }
+}
+
+function resolveTankCrushContact(enemy, player) {
+  if (enemy.dead || enemy.crushTimer <= 0 || enemy.crushVictims.has(player)) {
+    return;
+  }
+
+  const spec = getTankAttackSpec("crush");
+  const frontDistance = (player.x - enemy.x) * enemy.attackFacing;
+  const dy = Math.abs(player.y - enemy.y);
+  if (frontDistance < -86 || frontDistance > 142 || dy > spec.depth) {
+    return;
+  }
+
+  enemy.crushVictims.add(player);
+  spawnBurst(player.x, player.y - 18, "rgba(214, 194, 138, 0.86)", 18);
+  hurtPlayer(enemy, spec.damage, enemy.attackFacing * spec.push, spec.launch);
 }
 
 function updateEnemies(dt) {
@@ -2334,6 +2392,7 @@ function updateEnemies(dt) {
     }
 
     if (enemy.dead) {
+      enemy.crushTimer = 0;
       enemy.koTimer -= dt;
       enemy.vx *= 0.92;
       enemy.vy *= 0.92;
@@ -2355,6 +2414,14 @@ function updateEnemies(dt) {
       if (enemy.attackWindup === 0) {
         resolveEnemyAttack(enemy, player);
       }
+    } else if (enemy.crushTimer > 0) {
+      enemy.crushTimer = Math.max(0, enemy.crushTimer - dt);
+      enemy.vx = enemy.attackFacing * getTankAttackSpec("crush").dashVel;
+      enemy.vy *= 0.65;
+      resolveTankCrushContact(enemy, player);
+      if (enemy.crushTimer === 0) {
+        enemy.vx *= 0.32;
+      }
     } else if (enemy.hitstun === 0 && game.state !== "won") {
       const dx = player.x - enemy.x;
       const dy = player.y - enemy.y + enemy.aiOffset;
@@ -2375,8 +2442,10 @@ function updateEnemies(dt) {
           enemy.vy = desiredY * enemy.speed * 0.56;
         }
       } else if (enemy.kind === "tank") {
-        const spec = getTankAttackSpec();
+        const attackType = chooseTankAttack(enemy, distX, distY);
+        const spec = getTankAttackSpec(attackType);
         if (distX < spec.reachX && distY < spec.depth && enemy.attackCooldown === 0) {
+          enemy.attackType = attackType;
           enemy.attackFacing = dx >= 0 ? 1 : -1;
           enemy.attackWindup = spec.windup;
           enemy.attackWindupTotal = enemy.attackWindup;
@@ -2418,6 +2487,9 @@ function updateEnemies(dt) {
     enemy.y += enemy.vy * dtSeconds;
     enemy.x = clamp(enemy.x, 20, world.width - 20);
     enemy.y = clamp(enemy.y, world.top, world.bottom);
+    if (enemy.kind === "tank" && enemy.crushTimer > 0) {
+      resolveTankCrushContact(enemy, player);
+    }
   }
 }
 
@@ -3474,13 +3546,25 @@ function drawTelegraph(enemy, x, y) {
     ctx.fillText(spec.label, x, y - 112);
     ctx.textAlign = "left";
   } else if (enemy.kind === "tank") {
-    const spec = getTankAttackSpec();
+    const spec = getTankAttackSpec(enemy.attackType);
     const startX = enemy.attackFacing === 1 ? x + 20 : x - spec.reachX - 20;
     ctx.fillStyle = `rgba(${spec.telegraphColor}, ${0.1 + progress * 0.18})`;
     ctx.strokeStyle = `rgba(${spec.telegraphColor}, ${0.24 + progress * 0.42})`;
     ctx.lineWidth = 2 + progress * 3;
-    ctx.fillRect(startX, enemy.y - spec.depth + 12, spec.reachX, spec.depth * 2);
-    ctx.strokeRect(startX, enemy.y - spec.depth + 12, spec.reachX, spec.depth * 2);
+    if (spec.shape === "crush") {
+      ctx.fillRect(startX, enemy.y - spec.depth + 12, spec.reachX, spec.depth * 2);
+      ctx.strokeRect(startX, enemy.y - spec.depth + 12, spec.reachX, spec.depth * 2);
+      ctx.beginPath();
+      ctx.moveTo(enemy.attackFacing === 1 ? startX + spec.reachX - 18 : startX + 18, enemy.y + 12);
+      ctx.lineTo(enemy.attackFacing === 1 ? startX + spec.reachX + 18 : startX - 18, enemy.y - 10);
+      ctx.lineTo(enemy.attackFacing === 1 ? startX + spec.reachX + 18 : startX - 18, enemy.y + 34);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(startX, enemy.y - spec.depth + 12, spec.reachX, spec.depth * 2);
+      ctx.strokeRect(startX, enemy.y - spec.depth + 12, spec.reachX, spec.depth * 2);
+    }
     ctx.fillStyle = "#fff1cf";
     ctx.font = "12px Trebuchet MS";
     ctx.textAlign = "center";
@@ -3800,10 +3884,16 @@ function chooseEnemySpriteTag(enemy) {
   if (enemy.dead) {
     return "death";
   }
+  if (enemy.kind === "tank" && enemy.crushTimer > 0) {
+    return "walk";
+  }
   if (enemy.hitstun > 0 || enemy.thrownTimer > 0) {
     return "hit";
   }
   if (enemy.attackWindup > 0) {
+    if (enemy.kind === "tank" && enemy.attackType === "crush") {
+      return "walk";
+    }
     return "jab";
   }
   return Math.hypot(enemy.vx || 0, enemy.vy || 0) > 20 ? "walk" : "idle";
