@@ -26,6 +26,7 @@ let spriteSanitizeFailed = 0;
 let spriteSanitizeReset = false;
 
 const backgrounds = {
+  struggle: loadSpriteImage("./assets/backgrounds/struggle_session_bg.png"),
   tiananmen: loadSpriteImage("./assets/backgrounds/tiananmen_stage_bg.png"),
 };
 
@@ -830,6 +831,7 @@ const zoneTemplates = [
   {
     id: 0,
     name: "红卫兵路障",
+    backdrop: "struggle",
     triggerX: 360,
     left: 300,
     right: 790,
@@ -2739,6 +2741,80 @@ function getCurrentBackdrop() {
   )?.backdrop || "street";
 }
 
+function drawImageCover(image, x, y, width, height) {
+  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+  const sourceW = width / scale;
+  const sourceH = height / scale;
+  const sourceX = (image.naturalWidth - sourceW) * 0.5;
+  const sourceY = (image.naturalHeight - sourceH) * 0.5;
+  ctx.drawImage(image, sourceX, sourceY, sourceW, sourceH, x, y, width, height);
+}
+
+function drawStruggleSessionImageBackdrop() {
+  const image = backgrounds.struggle;
+  if (!image.complete || !image.naturalWidth) {
+    return false;
+  }
+
+  drawImageCover(image, 0, 0, WIDTH, HEIGHT);
+  ctx.fillStyle = "rgba(57, 23, 15, 0.1)";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.fillStyle = "rgba(255, 209, 121, 0.08)";
+  ctx.fillRect(0, world.top, WIDTH, world.bottom - world.top);
+  return true;
+}
+
+function drawStruggleSessionBackdrop() {
+  if (drawStruggleSessionImageBackdrop()) {
+    return;
+  }
+
+  const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+  sky.addColorStop(0, "#b9b6ac");
+  sky.addColorStop(0.58, "#8b7762");
+  sky.addColorStop(1, "#5f4432");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  ctx.fillStyle = "#373432";
+  ctx.fillRect(0, 114, WIDTH, 120);
+  ctx.fillStyle = "#4f4940";
+  for (let i = -1; i < 13; i += 1) {
+    ctx.fillRect(i * 88 - (game.cameraX * 0.08) % 88, 128, 76, 18);
+    ctx.fillRect(i * 88 + 24 - (game.cameraX * 0.08) % 88, 170, 76, 18);
+  }
+
+  const platformX = WIDTH * 0.5 - (game.cameraX * 0.14) % 120;
+  ctx.fillStyle = "#3f2a20";
+  ctx.fillRect(platformX - 244, 206, 488, 58);
+  ctx.fillStyle = "#684631";
+  ctx.fillRect(platformX - 268, 254, 536, 42);
+  ctx.fillStyle = "#9d1f17";
+  ctx.fillRect(platformX - 214, 142, 428, 40);
+  ctx.fillRect(platformX - 302, 116, 34, 136);
+  ctx.fillRect(platformX + 268, 116, 34, 136);
+
+  ctx.fillStyle = "rgba(27, 24, 22, 0.78)";
+  for (let i = 0; i < 20; i += 1) {
+    const side = i % 2 === 0 ? -1 : 1;
+    const x = platformX + side * (280 + (i % 10) * 28);
+    ctx.fillRect(x - 5, 210 + (i % 4) * 4, 10, 34);
+    ctx.beginPath();
+    ctx.arc(x, 204 + (i % 4) * 4, 7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "#7d5d42";
+  ctx.fillRect(0, world.top, WIDTH, world.bottom - world.top);
+  ctx.strokeStyle = "rgba(62, 39, 24, 0.18)";
+  for (let i = 0; i < 18; i += 1) {
+    ctx.beginPath();
+    ctx.moveTo(0, world.top + i * 13);
+    ctx.lineTo(WIDTH, world.top + i * 13);
+    ctx.stroke();
+  }
+}
+
 function drawTiananmenRoof(x, y, width, height) {
   ctx.fillStyle = "#542312";
   ctx.beginPath();
@@ -2867,7 +2943,13 @@ function drawTiananmenBackdrop() {
 }
 
 function drawBackground() {
-  if (getCurrentBackdrop() === "tiananmen") {
+  const backdrop = getCurrentBackdrop();
+  if (backdrop === "struggle") {
+    drawStruggleSessionBackdrop();
+    return;
+  }
+
+  if (backdrop === "tiananmen") {
     drawTiananmenBackdrop();
     return;
   }

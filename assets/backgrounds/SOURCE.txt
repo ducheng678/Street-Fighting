@@ -4,3 +4,10 @@ Source: user-provided/generated image
 Original file: ChatGPT Image May 3, 2026, 06_29_23 PM.png
 Imported as: tiananmen_stage_bg.png
 Imported: 2026-05-03
+
+Red guard struggle session stage background
+
+Source: user-provided/generated image
+Original file: ChatGPT Image May 4, 2026, 11_54_04 PM.png
+Imported as: struggle_session_bg.png
+Imported: 2026-05-04
